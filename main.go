@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/kylelemons/go-gypsy/yaml"
-	//"github.com/shawnps/gr"
-	//"github.com/shawnps/rt"
-	//"github.com/shawnps/sp"
+	"github.com/shawnps/gr"
+	"github.com/shawnps/rt"
+	"github.com/shawnps/sp"
 	"log"
+	"net/http"
 	"strings"
 )
 
@@ -35,4 +37,20 @@ func parseYAML() (rtKey, grKey, grSecret string) {
 
 // Search Rotten Tomatoes, Goodreads, and Spotify.
 func Search(q string) {
+}
+
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	rtKey, grKey, grSecret := parseYAML()
+	rt := rt.RottenTomatoes{rtKey}
+	gr := gr.Goodreads{grKey, grSecret}
+	sp := sp.Spotify{}
+	fmt.Println(rt)
+	fmt.Println(gr)
+	fmt.Println(sp)
+	fmt.Fprintf(w, "Hello")
+}
+
+func main() {
+	http.HandleFunc("/", HomeHandler)
+	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }
