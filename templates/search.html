@@ -6,11 +6,30 @@
 <body>
   <div class="container">
     <div class="span12 header">
-      <h1>Search</h1>
+      <h1>Search Results</h1>
     </div>
     <div>
-    <h2>Rotten Tomatoes  Results:</h2>
-    {{.Movies}}
+    <h2>Rotten Tomatoes:</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Year</th>
+          <th>Runtime</th>
+          <th>Ratings</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $movie := .Movies}}
+        <tr>
+        <td>{{$movie.Title}}</td>
+        <td>{{$movie.Year}}</td>
+        <td>{{$movie.Runtime}}</td>
+        <td>{{$movie.Ratings}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
     </div>
     <div>
     <h2>Goodreads Results:</h2>
