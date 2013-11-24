@@ -22,10 +22,10 @@
       <tbody>
         {{range $movie := .Movies}}
         <tr>
-        <td>{{$movie.Title}}</td>
-        <td>{{$movie.Year}}</td>
-        <td>{{$movie.Runtime}}</td>
-        <td>{{$movie.Ratings}}</td>
+          <td><a href="{{$movie.Links.alternate}}">{{$movie.Title}}</a></td>
+          <td>{{$movie.Year}}</td>
+          <td>{{$movie.Runtime}}</td>
+          <td>{{$movie.Ratings}}</td>
         </tr>
         {{end}}
       </tbody>
