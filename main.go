@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 var (
@@ -39,19 +40,36 @@ func parseYAML() (rtKey, grKey, grSecret string) {
 }
 
 // Search Rotten Tomatoes, Goodreads, and Spotify.
-func Search(q string, rt rt.RottenTomatoes, gr gr.Goodreads, sp sp.Spotify) ([]rt.Movie, gr.GoodreadsResponse, sp.SearchAlbumsResponse) {
-	m, err := rt.SearchMovies(q)
-	if err != nil {
-		fmt.Println("ERROR (rt): ", err.Error())
-	}
-	g, err := gr.SearchBooks(q)
-	if err != nil {
-		fmt.Println("ERROR (gr): ", err.Error())
-	}
-	s, err := sp.SearchAlbums(q)
-	if err != nil {
-		fmt.Println("ERROR (sp): ", err.Error())
-	}
+func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClient sp.Spotify) (m []rt.Movie, g gr.GoodreadsResponse, s sp.SearchAlbumsResponse) {
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func(q string) {
+		defer wg.Done()
+		movies, err := rtClient.SearchMovies(q)
+		if err != nil {
+			fmt.Println("ERROR (rt): ", err.Error())
+		}
+		for _, mov := range movies {
+			m = append(m, mov)
+		}
+	}(q)
+	go func(q string) {
+		defer wg.Done()
+		books, err := grClient.SearchBooks(q)
+		if err != nil {
+			fmt.Println("ERROR (gr): ", err.Error())
+		}
+		g = books
+	}(q)
+	go func(q string) {
+		defer wg.Done()
+		albums, err := spClient.SearchAlbums(q)
+		if err != nil {
+			fmt.Println("ERROR (sp): ", err.Error())
+		}
+		s = albums
+	}(q)
+	wg.Wait()
 	return m, g, s
 }
 
