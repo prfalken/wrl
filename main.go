@@ -84,16 +84,21 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err)
 	}
 	rtKey, grKey, grSecret := parseYAML()
-	rt := rt.RottenTomatoes{rtKey}
-	gr := gr.Goodreads{grKey, grSecret}
-	sp := sp.Spotify{}
-	m, g, s := Search(q, rt, gr, sp)
-	t, err := template.New("search.html").ParseFiles("templates/search.html")
+	rtClient := rt.RottenTomatoes{rtKey}
+	grClient := gr.Goodreads{grKey, grSecret}
+	spClient := sp.Spotify{}
+	m, g, s := Search(q, rtClient, grClient, spClient)
+	// Since spotify: URIs are not trusted, have to pass a
+	// URL function to the template to use in hrefs
+	funcMap := template.FuncMap{
+		"URL": func(q string) template.URL { return template.URL(q) },
+	}
+	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html")
 	if err != nil {
 		log.Panic(err)
 	}
 	// Render the template
-	err = t.Execute(w, map[string]interface{}{"Movies": m, "Books": g, "Albums": s})
+	err = t.Execute(w, map[string]interface{}{"Movies": m, "Books": g, "Albums": s.Albums})
 	if err != nil {
 		log.Panic(err)
 	}
