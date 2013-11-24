@@ -54,7 +54,26 @@
     </div>
     <div>
     <h2>Spotify Results:</h2>
-    {{.Albums}}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Artists</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range $album := .Albums}}
+        <tr>
+          <td><a href="{{URL $album.Href}}">{{$album.Name}}</a></td>
+          <td>
+            {{range $artist := $album.Artists}}
+            <a href="{{URL $artist.Href}}">{{$artist.Name}} </a>
+            {{end}}
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
     </div>
   </div>
 </body>
