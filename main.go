@@ -74,6 +74,15 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	t, err := template.New("index.html").ParseFiles("templates/index.html", "templates/base.html")
+	if err != nil {
+		log.Panic(err)
+	}
+	// Render the template
+	err = t.ExecuteTemplate(w, "base", nil)
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,12 +102,12 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	funcMap := template.FuncMap{
 		"URL": func(q string) template.URL { return template.URL(q) },
 	}
-	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html")
+	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html", "templates/base.html")
 	if err != nil {
 		log.Panic(err)
 	}
 	// Render the template
-	err = t.Execute(w, map[string]interface{}{"Movies": m, "Books": g, "Albums": s.Albums})
+	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": m, "Books": g, "Albums": s.Albums})
 	if err != nil {
 		log.Panic(err)
 	}
