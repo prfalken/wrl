@@ -1,0 +1,20 @@
+{{define "body"}}
+<h1>WatchReadListen</h1>
+<form role="form" id="search">
+  <div class="form-group">
+    <label for="search">Search</label>
+    <input type="text" class="form-control" id="search" placeholder="Search for movies, books, and albums">
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
+<script type="text/javascript">
+    var myForm = document.getElementById('search');
+    myForm.addEventListener('submit', submitForm, false);
+    function submitForm(e) {
+        query = document.getElementById("search").value;
+        window.location.href = "/search/" + query;
+        e.preventDefault();
+        return false;
+    }
+</script>
+{{end}}
