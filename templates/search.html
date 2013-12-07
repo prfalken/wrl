@@ -12,7 +12,8 @@
           <th>Title</th>
           <th>Year</th>
           <th>Runtime</th>
-          <th>Ratings</th>
+          <th>Critics Rating</th>
+          <th>Audience Rating</th>
         </tr>
       </thead>
       <tbody>
@@ -21,7 +22,8 @@
           <td><a href="{{$movie.Links.alternate}}">{{$movie.Title}}</a></td>
           <td>{{$movie.Year}}</td>
           <td>{{$movie.Runtime}}</td>
-          <td>{{$movie.Ratings}}</td>
+          <td>{{$movie.Ratings.CriticsRating}}: {{$movie.Ratings.CriticsScore}}%</td>
+          <td>{{$movie.Ratings.AudienceRating}}: {{$movie.Ratings.AudienceScore}}%</td>
         </tr>
         {{end}}
       </tbody>
