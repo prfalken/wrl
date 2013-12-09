@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/kylelemons/go-gypsy/yaml"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/shawnps/gr"
 	"github.com/shawnps/rt"
 	"github.com/shawnps/sp"
@@ -37,6 +39,21 @@ func parseYAML() (rtKey, grKey, grSecret string) {
 	grSecret = getYAMLString(g, "secret")
 
 	return rtKey, grKey, grSecret
+}
+
+func createDb() {
+	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
+	if err != nil {
+		log.Println("Error opening or creating deploy_log.db: " + err.Error())
+		return
+	}
+	defer db.Close()
+	sql := `create table if not exists entries (id integer not null primary key autoincrement, title text, link text, media_type text, timestamp datetime default current_timestamp);`
+	_, err = db.Exec(sql)
+	if err != nil {
+		log.Println("Error creating logs table: " + err.Error())
+		return
+	}
 }
 
 // Search Rotten Tomatoes, Goodreads, and Spotify.
@@ -114,6 +131,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	createDb()
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/search/{query}", SearchHandler)
