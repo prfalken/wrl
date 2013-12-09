@@ -56,6 +56,27 @@ func createDb() {
 	}
 }
 
+func insertEntry(db sql.DB, title, link, mediaType string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		log.Println("Error connecting to database: " + err.Error())
+		return err
+	}
+	stmt, err := tx.Prepare("insert into entries(title, link, media_type) values(?, ?, ?)")
+	if err != nil {
+		log.Println("Error inserting to database: " + err.Error())
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(title, link, mediaType)
+	if err != nil {
+		log.Println("Error executing statement on database: " + err.Error())
+		return err
+	}
+	tx.Commit()
+	return nil
+}
+
 // Search Rotten Tomatoes, Goodreads, and Spotify.
 func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClient sp.Spotify) (m []rt.Movie, g gr.GoodreadsResponse, s sp.SearchAlbumsResponse) {
 	var wg sync.WaitGroup
@@ -130,11 +151,30 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func SaveHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
+	if err != nil {
+		log.Println("Error opening sqlite db: " + err.Error())
+		return
+	}
+	defer db.Close()
+	t := r.FormValue("title")
+	l := r.FormValue("link")
+	m := r.FormValue("media_type")
+	err = insertEntry(*db, t, l, m)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func main() {
 	createDb()
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/search/{query}", SearchHandler)
+	r.HandleFunc("/save", SaveHandler)
 	http.Handle("/", r)
 	fmt.Println("Running on localhost:" + *port)
 
