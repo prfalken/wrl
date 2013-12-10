@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 )
 
 var (
@@ -169,12 +170,57 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func ListHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
+	if err != nil {
+		log.Println("Error opening sqlite db: " + err.Error())
+		return
+	}
+	defer db.Close()
+	q := "select id, title, link, media_type, timestamp from entries"
+	rows, err := db.Query(q)
+	if err != nil {
+		log.Println("Error querying sqlite db: " + err.Error())
+		return
+	}
+	type Entry struct {
+		Id        int
+		Title     string
+		Link      string
+		MediaType string `db:"media_type"`
+		Timestamp time.Time
+	}
+	entries := map[string][]Entry{}
+	defer rows.Close()
+	for rows.Next() {
+		e := Entry{}
+		var id int
+		var title, link, mediaType string
+		var timestamp time.Time
+		rows.Scan(&id, &title, &link, &mediaType, &timestamp)
+		e.Id = id
+		e.Title = title
+		e.Link = link
+		e.MediaType = mediaType
+		e.Timestamp = timestamp
+		entries[mediaType] = append(entries[mediaType], e)
+	}
+	// Create and parse Template
+	t, err := template.New("list.html").ParseFiles("templates/list.html", "templates/base.html")
+	if err != nil {
+		log.Panic(err)
+	}
+	// Render the template
+	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": entries})
+}
+
 func main() {
 	createDb()
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/search/{query}", SearchHandler)
 	r.HandleFunc("/save", SaveHandler)
+	r.HandleFunc("/list", ListHandler)
 	http.Handle("/", r)
 	fmt.Println("Running on localhost:" + *port)
 
