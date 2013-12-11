@@ -2,7 +2,6 @@
 <div class="container contents">
 <form role="form" id="searchForm">
   <div class="form-group">
-    <label for="search">Search</label>
     <input type="text" class="form-control" id="search" placeholder="Search for movies, books, and albums">
   </div>
   <button type="submit" class="btn btn-default">Submit</button>
@@ -12,10 +11,9 @@
     myForm.addEventListener('submit', submitForm, false);
     function submitForm(e) {
         query = document.getElementById("search").value;
-        console.log("query here");
-        console.log(query);
         window.location.href = "/search/" + query;
         e.preventDefault();
+
         return false;
     }
 </script>
