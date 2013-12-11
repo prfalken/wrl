@@ -8,9 +8,40 @@
     <title>WatchReadListen</title>
     <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <style type="text/css">
+  .brand {
+    font-size: 32px;
+    margin-left: -20px;
+    margin-right: 20px;
+    color: #fff;
+  }
+  .contents {
+    margin-top: 60px;
+  }
+  </style>
 </head>
-<div class="container">
 <body>
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="brand" href="/">WatchReadListen</a>
+        </div>
+        <div class="nav-collapse">
+          <ul class="nav navbar-nav">
+            {{if .Page}}
+            <li{{if eq .Page "home"}} class="active"{{end}}>
+              <a href="/">Home</a>
+            </li>
+            <li{{if eq .Page "list"}} class="active"{{end}}>
+              <a href="/list">List</a>
+            </li>
+            {{end}}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
   {{template "body" .}}
 </body>
 </div>

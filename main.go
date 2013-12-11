@@ -118,7 +118,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err)
 	}
 	// Render the template
-	err = t.ExecuteTemplate(w, "base", nil)
+	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Page": "home"})
 	if err != nil {
 		log.Panic(err)
 	}
@@ -211,7 +211,7 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err)
 	}
 	// Render the template
-	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": entries})
+	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": entries, "Page": "list"})
 }
 
 func main() {
