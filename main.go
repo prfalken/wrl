@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	_ "github.com/bradfitz/go-sqlite3"
 	"github.com/gorilla/mux"
 	"github.com/kylelemons/go-gypsy/yaml"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/shawnps/gr"
 	"github.com/shawnps/rt"
 	"github.com/shawnps/sp"
@@ -78,6 +78,14 @@ func insertEntry(db sql.DB, title, link, mediaType string) error {
 	return nil
 }
 
+func truncate(s, suf string, l int) string {
+	if len(s) < l {
+		return s
+	} else {
+		return s[:l] + suf
+	}
+}
+
 // Search Rotten Tomatoes, Goodreads, and Spotify.
 func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClient sp.Spotify) (m []rt.Movie, g gr.GoodreadsResponse, s sp.SearchAlbumsResponse) {
 	var wg sync.WaitGroup
@@ -89,6 +97,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 			fmt.Println("ERROR (rt): ", err.Error())
 		}
 		for _, mov := range movies {
+			mov.Title = truncate(mov.Title, "...", 60)
 			m = append(m, mov)
 		}
 	}(q)
@@ -98,6 +107,10 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		if err != nil {
 			fmt.Println("ERROR (gr): ", err.Error())
 		}
+		for i, w := range books.Search.Works {
+			w.BestBook.Title = truncate(w.BestBook.Title, "...", 60)
+			books.Search.Works[i] = w
+		}
 		g = books
 	}(q)
 	go func(q string) {
@@ -105,6 +118,10 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		albums, err := spClient.SearchAlbums(q)
 		if err != nil {
 			fmt.Println("ERROR (sp): ", err.Error())
+		}
+		for i, a := range albums.Albums {
+			a.Name = truncate(a.Name, "...", 60)
+			albums.Albums[i] = a
 		}
 		s = albums
 	}(q)
