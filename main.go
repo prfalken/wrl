@@ -45,14 +45,14 @@ func parseYAML() (rtKey, grKey, grSecret string) {
 func createDb() {
 	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
 	if err != nil {
-		log.Println("Error opening or creating deploy_log.db: " + err.Error())
+		log.Println("Error opening or creating watchreadlisten.db: " + err.Error())
 		return
 	}
 	defer db.Close()
 	sql := `create table if not exists entries (id integer not null primary key autoincrement, title text, link text, media_type text, timestamp datetime default current_timestamp);`
 	_, err = db.Exec(sql)
 	if err != nil {
-		log.Println("Error creating logs table: " + err.Error())
+		log.Println("Error creating entries table: " + err.Error())
 		return
 	}
 }
