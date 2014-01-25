@@ -13,7 +13,7 @@
     {{range $mediaType, $entries := .Entries}}
     {{range $i, $entry := $entries}}
     <tr>
-      <td>{{if not $i}} {{$mediaType}} {{end}}</td>
+      <td>{{if eq $i 0}} {{$mediaType}} {{end}}</td>
       <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
       <td>
         <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
