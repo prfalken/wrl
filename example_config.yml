@@ -1,4 +1,4 @@
 rt: rotten-tomatoes-api-key
 gr:
-    key: goodreads-key
-    secret: goodreads-secret
+  key: goodreads-key
+  secret: goodreads-secret

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -14,7 +15,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 )
@@ -24,55 +24,54 @@ var (
 	configFile = flag.String("c", "config.yml", "Config file (default config.yml)")
 )
 
-func getYAMLString(n yaml.Node, key string) string {
-	return strings.TrimSpace(n.(yaml.Map)[key].(yaml.Scalar).String())
-}
-
-func parseYAML() (rtKey, grKey, grSecret string) {
+func parseYAML() (rtKey, grKey, grSecret string, err error) {
 	config, err := yaml.ReadFile(*configFile)
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
-	configRoot, _ := config.Root.(yaml.Map)
-	rtKey = configRoot["rt"].(yaml.Scalar).String()
-	g := configRoot["gr"]
-	grKey = getYAMLString(g, "key")
-	grSecret = getYAMLString(g, "secret")
+	rtKey, err = config.Get("rt")
+	if err != nil {
+		return
+	}
+	grKey, err = config.Get("gr.key")
+	if err != nil {
+		return
+	}
+	grSecret, err = config.Get("gr.secret")
+	if err != nil {
+		return
+	}
 
-	return rtKey, grKey, grSecret
+	return rtKey, grKey, grSecret, nil
 }
 
-func createDb() {
+func createDb() error {
 	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
 	if err != nil {
-		log.Println("Error opening or creating watchreadlisten.db: " + err.Error())
-		return
+		return errors.New("Error opening or creating watchreadlisten.db: " + err.Error())
 	}
 	defer db.Close()
 	sql := `create table if not exists entries (id integer not null primary key autoincrement, title text, link text, media_type text, timestamp datetime default current_timestamp);`
 	_, err = db.Exec(sql)
 	if err != nil {
-		log.Println("Error creating entries table: " + err.Error())
-		return
+		return errors.New("Error creating entries table: " + err.Error())
 	}
+	return nil
 }
 
 func insertEntry(db sql.DB, title, link, mediaType string) error {
 	tx, err := db.Begin()
 	if err != nil {
-		log.Println("Error connecting to database: " + err.Error())
-		return err
+		return errors.New("Error connecting to database: " + err.Error())
 	}
 	stmt, err := tx.Prepare("insert into entries(title, link, media_type) values(?, ?, ?)")
 	if err != nil {
-		log.Println("Error inserting to database: " + err.Error())
-		return err
+		return errors.New("Error inserting to database: " + err.Error())
 	}
 	defer stmt.Close()
 	_, err = stmt.Exec(title, link, mediaType)
 	if err != nil {
-		log.Println("Error executing statement on database: " + err.Error())
-		return err
+		return errors.New("Error executing statement on database: " + err.Error())
 	}
 	tx.Commit()
 	return nil
@@ -146,9 +145,12 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	q := vars["query"]
 	q, err := url.QueryUnescape(q)
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	rtKey, grKey, grSecret := parseYAML()
+	rtKey, grKey, grSecret, err := parseYAML()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	rtClient := rt.RottenTomatoes{rtKey}
 	grClient := gr.Goodreads{grKey, grSecret}
 	spClient := sp.Spotify{}
@@ -232,7 +234,10 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	createDb()
+	err := createDb()
+	if err != nil {
+		log.Fatal(err)
+	}
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/search/{query}", SearchHandler)
