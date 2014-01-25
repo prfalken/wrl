@@ -186,7 +186,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/list", http.StatusFound)
 }
 
 func ListHandler(w http.ResponseWriter, r *http.Request) {
