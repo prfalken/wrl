@@ -192,14 +192,14 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
 	if err != nil {
-		log.Println("Error opening sqlite db: " + err.Error())
+		http.Error(w, "Error opening sqlite db: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
 	q := "select id, title, link, media_type, timestamp from entries"
 	rows, err := db.Query(q)
 	if err != nil {
-		log.Println("Error querying sqlite db: " + err.Error())
+		http.Error(w, "Error querying sqlite db: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	type Entry struct {
