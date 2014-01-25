@@ -1,30 +1,31 @@
 {{define "body"}}
   <div class="container contents">
     <div>
-    {{range $mediaType, $entries := .Entries}}
-    <h3>{{$mediaType}}</h3>
     <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th class="remove"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range $entry := $entries}}
-        <tr>
-          <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
-          <td>
-            <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
-              <input type="hidden" name="id" value="{{$entry.Id}}"/>
-              <input type="submit" class="btn btn-danger" value="Remove" />
-            </form>
-          </td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
+    <thead>
+      <tr>
+        <th>Media</th>
+        <th>Title</th>
+        <th class="remove"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {{range $mediaType, $entries := .Entries}}
+    {{range $i, $entry := $entries}}
+    <tr>
+      <td>{{if not $i}} {{$mediaType}} {{end}}</td>
+      <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
+      <td>
+        <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
+          <input type="hidden" name="id" value="{{$entry.Id}}"/>
+          <input type="submit" class="btn btn-danger" value="Remove" />
+        </form>
+      </td>
+    </tr>
     {{end}}
+    {{end}}
+    </tbody>
+    </table>
     </div>
   </div>
 {{end}}
