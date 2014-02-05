@@ -158,7 +158,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SaveHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "user=postgres dbname=wrl")
+	db, err := sql.Open("postgres", "user=postgres dbname=wrl sslmode=require")
 	if err != nil {
 		log.Println("Error opening db connection: " + err.Error())
 		return
@@ -176,13 +176,13 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "user=postgres dbname=wrl")
+	db, err := sql.Open("postgres", "user=postgres dbname=wrl sslmode=require")
 	if err != nil {
 		http.Error(w, "Error opening db connection: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
-	q := "select id, title, link, media_type, timestamp from entries"
+	q := "select id, title, link, media_type, ctime from entries"
 	rows, err := db.Query(q)
 	if err != nil {
 		http.Error(w, "Error querying db: "+err.Error(), http.StatusInternalServerError)
@@ -220,10 +220,6 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	err := createDb()
-	if err != nil {
-		log.Fatal(err)
-	}
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/search/{query}", SearchHandler)
