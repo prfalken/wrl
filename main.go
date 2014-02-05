@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/kylelemons/go-gypsy/yaml"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	"github.com/shawnps/gr"
 	"github.com/shawnps/rt"
 	"github.com/shawnps/sp"
@@ -43,20 +43,6 @@ func parseYAML() (rtKey, grKey, grSecret string, err error) {
 	}
 
 	return rtKey, grKey, grSecret, nil
-}
-
-func createDb() error {
-	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
-	if err != nil {
-		return errors.New("Error opening or creating watchreadlisten.db: " + err.Error())
-	}
-	defer db.Close()
-	sql := `create table if not exists entries (id integer not null primary key autoincrement, title text, link text, media_type text, timestamp datetime default current_timestamp);`
-	_, err = db.Exec(sql)
-	if err != nil {
-		return errors.New("Error creating entries table: " + err.Error())
-	}
-	return nil
 }
 
 func insertEntry(db sql.DB, title, link, mediaType string) error {
@@ -172,9 +158,9 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SaveHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
+	db, err := sql.Open("postgres", "user=postgres dbname=wrl")
 	if err != nil {
-		log.Println("Error opening sqlite db: " + err.Error())
+		log.Println("Error opening db connection: " + err.Error())
 		return
 	}
 	defer db.Close()
@@ -190,16 +176,16 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("sqlite3", "./watchreadlisten.db")
+	db, err := sql.Open("postgres", "user=postgres dbname=wrl")
 	if err != nil {
-		http.Error(w, "Error opening sqlite db: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error opening db connection: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
 	q := "select id, title, link, media_type, timestamp from entries"
 	rows, err := db.Query(q)
 	if err != nil {
-		http.Error(w, "Error querying sqlite db: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error querying db: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	type Entry struct {
