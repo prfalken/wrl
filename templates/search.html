@@ -45,6 +45,7 @@
     <table class="table table-striped">
       <thead>
         <tr>
+          <th>Image</th>
           <th>Title</th>
           <th>Author</th>
           <th>Average Rating</th>
@@ -54,6 +55,7 @@
       <tbody>
       {{range $work := .Books.Search.Works}}
         <tr>
+          <td><img src="{{$work.BestBook.SmallImageURL}}"></img></td>
           <td><a href="https://www.goodreads.com/book/show/{{$work.BestBook.Id}}">{{$work.BestBook.Title}}</a></td>
           <td><a href="https://www.goodreads.com/author/show/{{$work.BestBook.Author.Id}}">{{$work.BestBook.Author.Name}}</a></td>
           <td>{{$work.AverageRating}}</td>
