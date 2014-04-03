@@ -19,7 +19,11 @@
           <td><a href="{{$movie.Links.alternate}}">{{$movie.Title}}</a></td>
           <td>{{$movie.Year}}</td>
           <td>{{$movie.Runtime}}</td>
+          {{ if $movie.Ratings.CriticsScore }}
           <td>{{$movie.Ratings.CriticsRating}}: {{$movie.Ratings.CriticsScore}}%</td>
+          {{ else }}
+          <td></td>
+          {{ end }}
           <td>{{$movie.Ratings.AudienceRating}}: {{$movie.Ratings.AudienceScore}}%</td>
           <td>
             <form class="form-save" method="POST" action="/save" style="margin-bottom: 0">

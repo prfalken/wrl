@@ -5,18 +5,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/kylelemons/go-gypsy/yaml"
-	_ "github.com/lib/pq"
-	"github.com/shawnps/gr"
-	"github.com/shawnps/rt"
-	"github.com/shawnps/sp"
 	"html/template"
 	"log"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/kylelemons/go-gypsy/yaml"
+	_ "github.com/lib/pq"
+	"github.com/shawnps/gr"
+	"github.com/shawnps/rt"
+	"github.com/shawnps/sp"
 )
 
 var (
