@@ -5,6 +5,7 @@
     <table class="table table-striped">
       <thead>
         <tr>
+          <th>Poster</th>
           <th>Title</th>
           <th>Year</th>
           <th>Runtime</th>
@@ -16,6 +17,7 @@
       <tbody>
         {{range $movie := .Movies}}
         <tr>
+          <td><img src="{{$movie.Posters.thumbnail}}" height="91" width="61"></img></td>
           <td><a href="{{$movie.Links.alternate}}">{{$movie.Title}}</a></td>
           <td>{{$movie.Year}}</td>
           <td>{{$movie.Runtime}}</td>
