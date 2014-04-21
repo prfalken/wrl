@@ -15,7 +15,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kylelemons/go-gypsy/yaml"
-	_ "github.com/lib/pq"
 	"github.com/shawnps/gr"
 	"github.com/shawnps/rt"
 	"github.com/shawnps/sp"
