@@ -2,15 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"errors"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/kylelemons/go-gypsy/yaml"
@@ -24,6 +25,18 @@ var (
 	port       = flag.String("p", "8000", "Port number (default 8000)")
 	configFile = flag.String("c", "config.yml", "Config file (default config.yml)")
 )
+
+type entry struct {
+	Title    string
+	Link     string
+	ImageURL url.URL
+}
+
+type Entries struct {
+	Movies []entry
+	Books  []entry
+	Albums []entry
+}
 
 func parseYAML() (rtKey, grKey, grSecret string, err error) {
 	config, err := yaml.ReadFile(*configFile)
@@ -46,21 +59,65 @@ func parseYAML() (rtKey, grKey, grSecret string, err error) {
 	return rtKey, grKey, grSecret, nil
 }
 
-func insertEntry(db sql.DB, title, link, mediaType string) error {
-	tx, err := db.Begin()
+func writeJSON(e Entries, file string) error {
+	b, err := json.Marshal(e)
 	if err != nil {
-		return errors.New("Error connecting to database: " + err.Error())
+		return err
 	}
-	stmt, err := tx.Prepare("insert into entries(title, link, media_type) values(?, ?, ?)")
+	err = ioutil.WriteFile(file, b, 0755)
 	if err != nil {
-		return errors.New("Error inserting to database: " + err.Error())
+		return err
 	}
-	defer stmt.Close()
-	_, err = stmt.Exec(title, link, mediaType)
+
+	return nil
+}
+
+func readEntries() (Entries, error) {
+	var e Entries
+	b, err := ioutil.ReadFile("entries.json")
 	if err != nil {
-		return errors.New("Error executing statement on database: " + err.Error())
+		return e, err
 	}
-	tx.Commit()
+	err = json.Unmarshal(b, &e)
+	if err != nil {
+		return e, err
+	}
+
+	return e, nil
+}
+
+func insertEntry(title, link, mediaType, imageURL string) error {
+	if _, err := os.Stat("entries.json"); os.IsNotExist(err) {
+		_, err := os.Create("entries.json")
+		if err != nil {
+			return err
+		}
+		err = writeJSON(Entries{}, "entries.json")
+		if err != nil {
+			return err
+		}
+	}
+	e, err := readEntries()
+	if err != nil {
+		return err
+	}
+	url, err := url.Parse(imageURL)
+	if err != nil {
+		return err
+	}
+	entry := entry{title, link, *url}
+	switch mediaType {
+	case "movie":
+		e.Movies = append(e.Movies, entry)
+	case "book":
+		e.Books = append(e.Books, entry)
+	case "album":
+		e.Albums = append(e.Albums, entry)
+	}
+	err = writeJSON(e, "entries.json")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -168,7 +225,8 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	t := r.FormValue("title")
 	l := r.FormValue("link")
 	m := r.FormValue("media_type")
-	err = insertEntry(*db, t, l, m)
+	url := r.FormValue("media_url")
+	err = insertEntry(t, l, m, url)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -177,39 +235,10 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "user=postgres dbname=wrl sslmode=require")
+	entries, err := readEntries()
 	if err != nil {
-		http.Error(w, "Error opening db connection: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), 500)
 		return
-	}
-	defer db.Close()
-	q := "select id, title, link, media_type, ctime from entries"
-	rows, err := db.Query(q)
-	if err != nil {
-		http.Error(w, "Error querying db: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	type Entry struct {
-		Id        int
-		Title     string
-		Link      string
-		MediaType string `db:"media_type"`
-		Timestamp time.Time
-	}
-	entries := map[string][]Entry{}
-	defer rows.Close()
-	for rows.Next() {
-		e := Entry{}
-		var id int
-		var title, link, mediaType string
-		var timestamp time.Time
-		rows.Scan(&id, &title, &link, &mediaType, &timestamp)
-		e.Id = id
-		e.Title = title
-		e.Link = link
-		e.MediaType = mediaType
-		e.Timestamp = timestamp
-		entries[mediaType] = append(entries[mediaType], e)
 	}
 	// Create and parse Template
 	t, err := template.New("list.html").ParseFiles("templates/list.html", "templates/base.html")
