@@ -27,6 +27,7 @@ var (
 )
 
 type entry struct {
+	Id       string
 	Title    string
 	Link     string
 	ImageURL url.URL
@@ -86,6 +87,19 @@ func readEntries() (Entries, error) {
 	return e, nil
 }
 
+func uuid() (string, error) {
+	f, err := os.Open("/dev/urandom")
+	if err != nil {
+		return "", err
+	}
+	b := make([]byte, 16)
+	f.Read(b)
+	f.Close()
+	uuid := fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+
+	return uuid, nil
+}
+
 func insertEntry(title, link, mediaType, imageURL string) error {
 	if _, err := os.Stat("entries.json"); os.IsNotExist(err) {
 		_, err := os.Create("entries.json")
@@ -105,7 +119,11 @@ func insertEntry(title, link, mediaType, imageURL string) error {
 	if err != nil {
 		return err
 	}
-	entry := entry{title, link, *url}
+	id, err := uuid()
+	if err != nil {
+		return err
+	}
+	entry := entry{id, title, link, *url}
 	switch mediaType {
 	case "movie":
 		e.Movies = append(e.Movies, entry)
@@ -225,7 +243,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	t := r.FormValue("title")
 	l := r.FormValue("link")
 	m := r.FormValue("media_type")
-	url := r.FormValue("media_url")
+	url := r.FormValue("image_url")
 	err = insertEntry(t, l, m, url)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

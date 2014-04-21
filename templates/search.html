@@ -32,6 +32,7 @@
               <input type="hidden" name="title" value="{{$movie.Title}}"/>
               <input type="hidden" name="link" value="{{$movie.Links.alternate}}"/>
               <input type="hidden" name="media_type" value="movie"/>
+              <input type="hidden" name="image_url" value="{{$movie.Posters.thumbnail}}"/>
               <input type="submit" class="btn btn-success" value="Save" />
             </form>
           </td>
@@ -64,6 +65,7 @@
               <input type="hidden" name="title" value="{{$work.BestBook.Title}}"/>
               <input type="hidden" name="link" value="https://www.goodreads.com/book/show/{{$work.BestBook.Id}}">
               <input type="hidden" name="media_type" value="book"/>
+              <input type="hidden" name="image_url" value="{{$work.BestBook.SmallImageURL}}"/>
               <input type="submit" class="btn btn-success" value="Save" />
             </form>
           </td>

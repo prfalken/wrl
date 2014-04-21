@@ -4,16 +4,17 @@
     <table class="table table-striped">
     <thead>
       <tr>
+        <th>Image</th>
         <th>Media</th>
         <th>Title</th>
         <th class="remove"></th>
       </tr>
     </thead>
     <tbody>
-    {{range $mediaType, $entries := .Entries}}
-    {{range $i, $entry := $entries}}
+    {{range $i, $entry := .Entries.Movies}}
     <tr>
-      <td>{{if eq $i 0}} {{$mediaType}} {{end}}</td>
+      <td>{{if eq $i 0}} Movies {{end}}</td>
+      <td><img src="{{$entry.ImageURL.String}}" height="91" width="61"></img></td>
       <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
       <td>
         <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
@@ -23,6 +24,31 @@
       </td>
     </tr>
     {{end}}
+    {{range $i, $entry := .Entries.Books}}
+    <tr>
+      <td>{{if eq $i 0}} Books {{end}}</td>
+      <td><img src="{{$entry.ImageURL.String}}" height="91" width="61"></img></td>
+      <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
+      <td>
+        <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
+          <input type="hidden" name="id" value="{{$entry.Id}}"/>
+          <input type="submit" class="btn btn-danger" value="Remove" />
+        </form>
+      </td>
+    </tr>
+    {{end}}
+    {{range $i, $entry := .Entries.Albums}}
+    <tr>
+      <td>{{if eq $i 0}} Albums {{end}}</td>
+      <td><img src="{{$entry.ImageURL.String}}" height="91" width="61"></img></td>
+      <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
+      <td>
+        <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
+          <input type="hidden" name="id" value="{{$entry.Id}}"/>
+          <input type="submit" class="btn btn-danger" value="Remove" />
+        </form>
+      </td>
+    </tr>
     {{end}}
     </tbody>
     </table>
