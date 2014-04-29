@@ -1,5 +1,13 @@
 # watchreadlisten
 
+Search Rotten Tomatoes, Goodreads, and Spotify:
+
+![Search](http://i.imgur.com/1KrZ0JY.png)
+
+Then save items to a list:
+
+![List](http://i.imgur.com/uYgOmqy.png)
+
 ## Installation:
 `go get github.com/shawnps/watchreadlisten`
 
