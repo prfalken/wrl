@@ -16,7 +16,11 @@
     <tbody>
     <tr>
       <td>{{if eq $i 0}} {{$mediaType}} {{end}}</td>
+      {{if $entry.ImageURL.String}}
       <td><img src="{{$entry.ImageURL.String}}" height="91" width="61"></img></td>
+      {{else}}
+      <td></td>
+      {{end}}
       <td><a href="{{$entry.Link}}">{{$entry.Title}}</a></td>
       <td>
         <form class="form-remove" method="POST" action="/remove" style="margin-bottom: 0">
