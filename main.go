@@ -275,12 +275,23 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": m, "Page": "list"})
 }
 
+func RemoveHandler(w http.ResponseWriter, r *http.Request) {
+	i := r.FormValue("id")
+	err := removeEntry(i)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), 500)
+		return
+	}
+	http.Redirect(w, r, "/list", http.StatusFound)
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/search/{query}", SearchHandler)
 	r.HandleFunc("/save", SaveHandler)
 	r.HandleFunc("/list", ListHandler)
+	r.HandleFunc("/remove", RemoveHandler)
 	http.Handle("/", r)
 	fmt.Println("Running on localhost:" + *port)
 
