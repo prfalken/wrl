@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/mux"
@@ -21,21 +21,17 @@ import (
 )
 
 var (
-	port       = flag.String("p", "8000", "Port number (default 8000)")
-	configFile = flag.String("c", "config.yml", "Config file (default config.yml)")
+	port        = flag.String("p", "8000", "Port number (default 8000)")
+	configFile  = flag.String("c", "config.yml", "Config file (default config.yml)")
+	entriesPath = flag.String("f", "entries.json", "Path to JSON storage file (default entries.json)")
 )
 
-type entry struct {
+type Entry struct {
 	Id       string
 	Title    string
 	Link     string
 	ImageURL url.URL
-}
-
-type Entries struct {
-	Movies []entry
-	Books  []entry
-	Albums []entry
+	Type     string
 }
 
 func parseYAML() (rtKey, grKey, grSecret string, err error) {
@@ -59,7 +55,7 @@ func parseYAML() (rtKey, grKey, grSecret string, err error) {
 	return rtKey, grKey, grSecret, nil
 }
 
-func writeJSON(e Entries, file string) error {
+func writeJSON(e []Entry, file string) error {
 	b, err := json.Marshal(e)
 	if err != nil {
 		return err
@@ -72,11 +68,23 @@ func writeJSON(e Entries, file string) error {
 	return nil
 }
 
-func readEntries() (Entries, error) {
-	var e Entries
-	b, err := ioutil.ReadFile("entries.json")
+func buildEntryMap(entries []Entry) map[string][]Entry {
+	m := map[string][]Entry{}
+	for _, e := range entries {
+		k := strings.Title(e.Type)
+		m[k] = append(m[k], e)
+	}
+	return m
+}
+
+func readEntries() ([]Entry, error) {
+	var e []Entry
+	b, err := ioutil.ReadFile(*entriesPath)
 	if err != nil {
 		return e, err
+	}
+	if len(b) == 0 {
+		return []Entry{}, nil
 	}
 	err = json.Unmarshal(b, &e)
 	if err != nil {
@@ -100,12 +108,12 @@ func uuid() (string, error) {
 }
 
 func insertEntry(title, link, mediaType, imageURL string) error {
-	if _, err := os.Stat("entries.json"); os.IsNotExist(err) {
-		_, err := os.Create("entries.json")
+	if _, err := os.Stat(*entriesPath); os.IsNotExist(err) {
+		_, err := os.Create(*entriesPath)
 		if err != nil {
 			return err
 		}
-		err = writeJSON(Entries{}, "entries.json")
+		err = writeJSON([]Entry{}, *entriesPath)
 		if err != nil {
 			return err
 		}
@@ -122,20 +130,26 @@ func insertEntry(title, link, mediaType, imageURL string) error {
 	if err != nil {
 		return err
 	}
-	entry := entry{id, title, link, *url}
-	switch mediaType {
-	case "movie":
-		e.Movies = append(e.Movies, entry)
-	case "book":
-		e.Books = append(e.Books, entry)
-	case "album":
-		e.Albums = append(e.Albums, entry)
-	}
-	err = writeJSON(e, "entries.json")
+	entry := Entry{id, title, link, *url, mediaType}
+	e = append(e, entry)
+	err = writeJSON(e, *entriesPath)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func removeEntry(id string) error {
+	entries, err := readEntries()
+	if err != nil {
+		return err
+	}
+	for i, e := range entries {
+		if e.Id == id {
+			entries = append(entries[:i], entries[i+1:]...)
+		}
+	}
+	return writeJSON(entries, *entriesPath)
 }
 
 func truncate(s, suf string, l int) string {
@@ -233,17 +247,11 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SaveHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("postgres", "user=postgres dbname=wrl sslmode=require")
-	if err != nil {
-		log.Println("Error opening db connection: " + err.Error())
-		return
-	}
-	defer db.Close()
 	t := r.FormValue("title")
 	l := r.FormValue("link")
 	m := r.FormValue("media_type")
 	url := r.FormValue("image_url")
-	err = insertEntry(t, l, m, url)
+	err := insertEntry(t, l, m, url)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -252,18 +260,19 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListHandler(w http.ResponseWriter, r *http.Request) {
-	entries, err := readEntries()
+	e, err := readEntries()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), 500)
 		return
 	}
+	m := buildEntryMap(e)
 	// Create and parse Template
 	t, err := template.New("list.html").ParseFiles("templates/list.html", "templates/base.html")
 	if err != nil {
 		log.Panic(err)
 	}
 	// Render the template
-	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": entries, "Page": "list"})
+	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": m, "Page": "list"})
 }
 
 func main() {
