@@ -206,12 +206,14 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.New("index.html").ParseFiles("templates/index.html", "templates/base.html")
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	// Render the template
 	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Page": "home"})
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -221,10 +223,12 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	q, err := url.QueryUnescape(q)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	rtKey, grKey, grSecret, err := parseYAML()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	rtClient := rt.RottenTomatoes{rtKey}
 	grClient := gr.Goodreads{grKey, grSecret}
@@ -237,12 +241,14 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html", "templates/base.html")
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	// Render the template
 	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": m, "Books": g, "Albums": s.Albums})
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -262,14 +268,15 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	e, err := readEntries()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), 500)
+		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), http.StatusInternalServerError)
 		return
 	}
 	m := buildEntryMap(e)
 	// Create and parse Template
 	t, err := template.New("list.html").ParseFiles("templates/list.html", "templates/base.html")
 	if err != nil {
-		log.Panic(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	// Render the template
 	t.ExecuteTemplate(w, "base", map[string]interface{}{"Entries": m, "Page": "list"})
@@ -279,7 +286,7 @@ func RemoveHandler(w http.ResponseWriter, r *http.Request) {
 	i := r.FormValue("id")
 	err := removeEntry(i)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), 500)
+		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/list", http.StatusFound)
