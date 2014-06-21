@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 
-	"github.com/gorilla/mux"
 	"github.com/kylelemons/go-gypsy/yaml"
 	"github.com/shawnps/gr"
 	"github.com/shawnps/rt"
@@ -217,14 +217,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SearchHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	q := vars["query"]
-	q, err := url.QueryUnescape(q)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	rtKey, grKey, grSecret, err := parseYAML()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -233,11 +226,11 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	rtClient := rt.RottenTomatoes{rtKey}
 	grClient := gr.Goodreads{grKey, grSecret}
 	spClient := sp.Spotify{}
-	m, g, s := Search(q, rtClient, grClient, spClient)
+	m, g, s := Search(query, rtClient, grClient, spClient)
 	// Since spotify: URIs are not trusted, have to pass a
 	// URL function to the template to use in hrefs
 	funcMap := template.FuncMap{
-		"URL": func(q string) template.URL { return template.URL(q) },
+		"URL": func(q string) template.URL { return template.URL(query) },
 	}
 	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html", "templates/base.html")
 	if err != nil {
@@ -292,14 +285,25 @@ func RemoveHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/list", http.StatusFound)
 }
 
+var validSearchPath = regexp.MustCompile("^/search/(.*)$")
+
+func makeSearchHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m := validSearchPath.FindStringSubmatch(r.URL.Path)
+		if m == nil {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, m[1])
+	}
+}
+
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/search/{query}", SearchHandler)
-	r.HandleFunc("/save", SaveHandler)
-	r.HandleFunc("/list", ListHandler)
-	r.HandleFunc("/remove", RemoveHandler)
-	http.Handle("/", r)
+	http.HandleFunc("/", HomeHandler)
+	http.HandleFunc("/search/", makeSearchHandler(SearchHandler))
+	http.HandleFunc("/save", SaveHandler)
+	http.HandleFunc("/list", ListHandler)
+	http.HandleFunc("/remove", RemoveHandler)
 	fmt.Println("Running on localhost:" + *port)
 
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
