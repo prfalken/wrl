@@ -299,6 +299,7 @@ func makeSearchHandler(fn func(http.ResponseWriter, *http.Request, string)) http
 }
 
 func main() {
+	flag.Parse()
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/search/", makeSearchHandler(SearchHandler))
 	http.HandleFunc("/save", SaveHandler)
