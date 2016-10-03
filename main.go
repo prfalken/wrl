@@ -168,7 +168,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		defer wg.Done()
 		movies, err := rtClient.SearchMovies(q)
 		if err != nil {
-			fmt.Println("ERROR (rt): ", err.Error())
+			fmt.Println("ERROR (rt):", err.Error())
 		}
 		for _, mov := range movies {
 			mov.Title = truncate(mov.Title, "...", 60)
@@ -179,7 +179,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		defer wg.Done()
 		books, err := grClient.SearchBooks(q)
 		if err != nil {
-			fmt.Println("ERROR (gr): ", err.Error())
+			fmt.Println("ERROR (gr):", err.Error())
 		}
 		for i, w := range books.Search.Works {
 			w.BestBook.Title = truncate(w.BestBook.Title, "...", 60)
@@ -191,7 +191,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		defer wg.Done()
 		albums, err := spClient.SearchAlbums(q)
 		if err != nil {
-			fmt.Println("ERROR (sp): ", err.Error())
+			fmt.Println("ERROR (sp):", err.Error())
 		}
 		for i, a := range albums.Albums {
 			a.Name = truncate(a.Name, "...", 60)
