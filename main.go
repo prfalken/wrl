@@ -193,9 +193,9 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		if err != nil {
 			fmt.Println("ERROR (sp):", err.Error())
 		}
-		for i, a := range albums.Albums {
+		for i, a := range albums.Albums.Items {
 			a.Name = truncate(a.Name, "...", 60)
-			albums.Albums[i] = a
+			albums.Albums.Items[i] = a
 		}
 		s = albums
 	}(q)
@@ -220,13 +220,14 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	rtKey, grKey, grSecret, err := parseYAML()
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	client := http.Client{}
+	client := &http.Client{}
 	rtClient := rt.RottenTomatoes{client, rtKey}
 	grClient := gr.Goodreads{client, grKey, grSecret}
-	spClient := sp.Spotify{}
+	spClient := sp.Spotify{client}
 	m, g, s := Search(query, rtClient, grClient, spClient)
 	// Since spotify: URIs are not trusted, have to pass a
 	// URL function to the template to use in hrefs
@@ -235,12 +236,14 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	}
 	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html", "templates/base.html")
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// Render the template
 	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": m, "Books": g, "Albums": s.Albums})
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -253,6 +256,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("image_url")
 	err := insertEntry(t, l, m, url)
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -262,6 +266,7 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 func ListHandler(w http.ResponseWriter, r *http.Request) {
 	e, err := readEntries()
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -269,6 +274,7 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 	// Create and parse Template
 	t, err := template.New("list.html").ParseFiles("templates/list.html", "templates/base.html")
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -280,6 +286,7 @@ func RemoveHandler(w http.ResponseWriter, r *http.Request) {
 	i := r.FormValue("id")
 	err := removeEntry(i)
 	if err != nil {
+		log.Println("ERROR:", err)
 		http.Error(w, fmt.Sprintf("Error reading entries: %v", err), http.StatusInternalServerError)
 		return
 	}
