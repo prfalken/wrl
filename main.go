@@ -168,7 +168,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		defer wg.Done()
 		movies, err := rtClient.SearchMovies(q)
 		if err != nil {
-			fmt.Println("ERROR (rt):", err.Error())
+			log.Println("ERROR (rt):", err.Error())
 		}
 		for _, mov := range movies {
 			mov.Title = truncate(mov.Title, "...", 60)
@@ -179,7 +179,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		defer wg.Done()
 		books, err := grClient.SearchBooks(q)
 		if err != nil {
-			fmt.Println("ERROR (gr):", err.Error())
+			log.Println("ERROR (gr):", err.Error())
 		}
 		for i, w := range books.Search.Works {
 			w.BestBook.Title = truncate(w.BestBook.Title, "...", 60)
@@ -191,7 +191,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		defer wg.Done()
 		albums, err := spClient.SearchAlbums(q)
 		if err != nil {
-			fmt.Println("ERROR (sp):", err.Error())
+			log.Println("ERROR (sp):", err.Error())
 		}
 		for i, a := range albums.Albums.Items {
 			a.Name = truncate(a.Name, "...", 60)
@@ -313,7 +313,7 @@ func main() {
 	http.HandleFunc("/save", SaveHandler)
 	http.HandleFunc("/list", ListHandler)
 	http.HandleFunc("/remove", RemoveHandler)
-	fmt.Println("Running on localhost:" + *port)
+	log.Println("Running on localhost:" + *port)
 
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }
