@@ -79,6 +79,7 @@
     <table class="table table-striped">
       <thead>
         <tr>
+          <th>Image</th>
           <th>Title</th>
           <th>Artists</th>
           <th class="save"></th>
@@ -87,6 +88,7 @@
       <tbody>
         {{range $album := .Albums.Items}}
         <tr>
+          <td><img src="{{spotifyImage $album}}" height="64" width="64"></img></td>
           <td><a href="{{URL $album.Href}}">{{$album.Name}}</a></td>
           <td>
             {{range $artist := $album.Artists}}

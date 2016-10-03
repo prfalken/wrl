@@ -233,6 +233,12 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	// URL function to the template to use in hrefs
 	funcMap := template.FuncMap{
 		"URL": func(q string) template.URL { return template.URL(query) },
+		"spotifyImage": func(album sp.Album) string {
+			if len(album.Images) > 0 {
+				return album.Images[len(album.Images)-1].URL
+			}
+			return ""
+		},
 	}
 	t, err := template.New("search.html").Funcs(funcMap).ParseFiles("templates/search.html", "templates/base.html")
 	if err != nil {
