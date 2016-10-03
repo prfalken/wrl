@@ -57,13 +57,13 @@
       {{range $work := .Books.Search.Works}}
         <tr>
           <td><img src="{{$work.BestBook.SmallImageURL}}"></img></td>
-          <td><a href="https://www.goodreads.com/book/show/{{$work.BestBook.Id}}">{{$work.BestBook.Title}}</a></td>
-          <td><a href="https://www.goodreads.com/author/show/{{$work.BestBook.Author.Id}}">{{$work.BestBook.Author.Name}}</a></td>
+          <td><a href="https://www.goodreads.com/book/show/{{$work.BestBook.ID}}">{{$work.BestBook.Title}}</a></td>
+          <td><a href="https://www.goodreads.com/author/show/{{$work.BestBook.Author.ID}}">{{$work.BestBook.Author.Name}}</a></td>
           <td>{{$work.AverageRating}}</td>
           <td>
             <form class="form-save" method="POST" action="/save" style="margin-bottom: 0">
               <input type="hidden" name="title" value="{{$work.BestBook.Title}}"/>
-              <input type="hidden" name="link" value="https://www.goodreads.com/book/show/{{$work.BestBook.Id}}">
+              <input type="hidden" name="link" value="https://www.goodreads.com/book/show/{{$work.BestBook.ID}}">
               <input type="hidden" name="media_type" value="book"/>
               <input type="hidden" name="image_url" value="{{$work.BestBook.SmallImageURL}}"/>
               <input type="submit" class="btn btn-primary btn-sm" value="Save" />
@@ -85,7 +85,7 @@
         </tr>
       </thead>
       <tbody>
-        {{range $album := .Albums}}
+        {{range $album := .Albums.Items}}
         <tr>
           <td><a href="{{URL $album.Href}}">{{$album.Name}}</a></td>
           <td>
