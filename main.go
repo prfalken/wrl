@@ -223,8 +223,9 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	rtClient := rt.RottenTomatoes{rtKey}
-	grClient := gr.Goodreads{grKey, grSecret}
+	client := http.Client{}
+	rtClient := rt.RottenTomatoes{client, rtKey}
+	grClient := gr.Goodreads{client, grKey, grSecret}
 	spClient := sp.Spotify{}
 	m, g, s := Search(query, rtClient, grClient, spClient)
 	// Since spotify: URIs are not trusted, have to pass a
