@@ -1,5 +1,7 @@
 # watchreadlisten
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/shawnps/watchreadlisten)](https://goreportcard.com/report/github.com/shawnps/watchreadlisten)
+
 Search Rotten Tomatoes, Goodreads, and Spotify:
 
 ![Search](http://i.imgur.com/1KrZ0JY.png)
