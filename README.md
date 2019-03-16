@@ -1,6 +1,7 @@
 # WRL : Watch, Read, Listen
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/prfalken/wrl)](https://goreportcard.com/report/github.com/prfalken/wrl)
+[![Build Status](https://travis-ci.com/prfalken/wrl.svg?branch=master)](https://travis-ci.com/prfalken/wrl)
 
 Revamp application from http://github.com/shawnps/watchreadlisten. Thank you !
 
