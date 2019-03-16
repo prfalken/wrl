@@ -15,9 +15,9 @@ import (
 	"sync"
 
 	"github.com/kylelemons/go-gypsy/yaml"
-	"github.com/shawnps/gr"
-	"github.com/shawnps/rt"
-	"github.com/shawnps/sp"
+	gr "github.com/prfalken/watchreadlisten/goodreads"
+	rt "github.com/prfalken/watchreadlisten/rottentomatoes"
+	sp "github.com/prfalken/watchreadlisten/spotify"
 )
 
 var (
@@ -27,7 +27,7 @@ var (
 )
 
 type Entry struct {
-	Id       string
+	ID       string
 	Title    string
 	Link     string
 	ImageURL url.URL
@@ -145,7 +145,7 @@ func removeEntry(id string) error {
 		return err
 	}
 	for i, e := range entries {
-		if e.Id == id {
+		if e.ID == id {
 			entries = append(entries[:i], entries[i+1:]...)
 		}
 	}
