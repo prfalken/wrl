@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/http"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var (
@@ -11,6 +12,11 @@ var (
 	configFile  = flag.String("c", "config.yml", "Config file (default config.yml)")
 	entriesPath = flag.String("f", "entries.json", "Path to JSON storage file (default entries.json)")
 )
+
+func init() {
+	log.SetFormatter(&log.TextFormatter{})
+	log.SetLevel(log.DebugLevel)
+}
 
 func main() {
 	flag.Parse()
@@ -20,6 +26,5 @@ func main() {
 	http.HandleFunc("/list", ListHandler)
 	http.HandleFunc("/remove", RemoveHandler)
 	log.Println("Running on localhost:" + *port)
-
 	log.Fatal(http.ListenAndServe("127.0.0.1:"+*port, nil))
 }

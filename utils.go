@@ -11,12 +11,12 @@ import (
 	"github.com/kylelemons/go-gypsy/yaml"
 )
 
-func parseYAML() (rtKey, grKey, grSecret string, err error) {
+func parseYAML() (imdbKey, grKey, grSecret string, err error) {
 	config, err := yaml.ReadFile(*configFile)
 	if err != nil {
 		return
 	}
-	rtKey, err = config.Get("rt")
+	imdbKey, err = config.Get("imdb.key")
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func parseYAML() (rtKey, grKey, grSecret string, err error) {
 		return
 	}
 
-	return rtKey, grKey, grSecret, nil
+	return imdbKey, grKey, grSecret, nil
 }
 
 func writeJSON(e []Entry, file string) error {

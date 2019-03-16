@@ -1,4 +1,4 @@
-package gr
+package goodreads
 
 import (
 	"encoding/xml"

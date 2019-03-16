@@ -1,4 +1,4 @@
-package sp
+package spotify
 
 import (
 	"encoding/json"

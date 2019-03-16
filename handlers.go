@@ -3,15 +3,17 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 	"sync"
 
-	gr "github.com/prfalken/watchreadlisten/goodreads"
-	rt "github.com/prfalken/watchreadlisten/rottentomatoes"
-	sp "github.com/prfalken/watchreadlisten/spotify"
+	log "github.com/Sirupsen/logrus"
+
+	omdb "github.com/kenshaw/imdb"
+	goodreads "github.com/prfalken/watchreadlisten/goodreads"
+	imdb "github.com/prfalken/watchreadlisten/imdb"
+	spotify "github.com/prfalken/watchreadlisten/spotify"
 )
 
 type Entry struct {
@@ -22,19 +24,18 @@ type Entry struct {
 	Type     string
 }
 
-// Search Rotten Tomatoes, Goodreads, and Spotify.
-func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClient sp.Spotify) (m []rt.Movie, g gr.GoodreadsResponse, s sp.SearchAlbumsResponse) {
+// Search Imdb, Goodreads, and Spotify.
+func Search(q string, imdbClient imdb.Imdb, grClient goodreads.Goodreads, spClient spotify.Spotify) (i []*omdb.MovieResult, g goodreads.GoodreadsResponse, s spotify.SearchAlbumsResponse) {
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func(q string) {
 		defer wg.Done()
-		movies, err := rtClient.SearchMovies(q)
+		movies, err := imdbClient.SearchMovies(q)
 		if err != nil {
-			log.Println("ERROR (rt SearchMovies):", err.Error())
+			log.Println("ERROR (imdb SearchMovies):", err.Error())
 		}
 		for _, mov := range movies {
-			mov.Title = truncate(mov.Title, "...", 60)
-			m = append(m, mov)
+			i = append(i, mov)
 		}
 	}(q)
 	go func(q string) {
@@ -62,7 +63,7 @@ func Search(q string, rtClient rt.RottenTomatoes, grClient gr.Goodreads, spClien
 		s = albums
 	}(q)
 	wg.Wait()
-	return m, g, s
+	return i, g, s
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,22 +81,22 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
-	rtKey, grKey, grSecret, err := parseYAML()
+	iKey, grKey, grSecret, err := parseYAML()
 	if err != nil {
 		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	client := &http.Client{}
-	rtClient := rt.RottenTomatoes{Client: client, Key: rtKey}
-	grClient := gr.Goodreads{Client: *client, Key: grKey, Secret: grSecret}
-	spClient := sp.Spotify{Client: client}
-	m, g, s := Search(query, rtClient, grClient, spClient)
+	grClient := goodreads.Goodreads{Client: *client, Key: grKey, Secret: grSecret}
+	spClient := spotify.Spotify{Client: client}
+	imdbClient := imdb.Imdb{Client: client, Key: iKey}
+	i, g, s := Search(query, imdbClient, grClient, spClient)
 	// Since spotify: URIs are not trusted, have to pass a
 	// URL function to the template to use in hrefs
 	funcMap := template.FuncMap{
 		"URL": func(q string) template.URL { return template.URL(query) },
-		"spotifyImage": func(album sp.Album) string {
+		"spotifyImage": func(album spotify.Album) string {
 			if len(album.Images) > 0 {
 				return album.Images[len(album.Images)-1].URL
 			}
@@ -109,7 +110,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 		return
 	}
 	// Render the template
-	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": m, "Books": g, "Albums": s.Albums})
+	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": i, "Books": g, "Albums": s.Albums})
 	if err != nil {
 		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
