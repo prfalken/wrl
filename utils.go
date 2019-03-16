@@ -28,8 +28,16 @@ func parseYAML() (imdbKey, grKey, grSecret string, err error) {
 	if err != nil {
 		return
 	}
+	spKey, err = config.Get("spotify.key")
+	if err != nil {
+		return
+	}
+	spSecret, err = config.Get("spotify.secret")
+	if err != nil {
+		return
+	}
 
-	return imdbKey, grKey, grSecret, nil
+	return imdbKey, grKey, grSecret, spKey, spSecret, nil
 }
 
 func writeJSON(e []Entry, file string) error {

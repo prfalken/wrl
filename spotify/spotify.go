@@ -1,5 +1,7 @@
 package spotify
 
+// TODO: use https://github.com/zmb3/spotify
+
 import (
 	"encoding/json"
 	"io/ioutil"
