@@ -1,4 +1,4 @@
-rt: rotten-tomatoes-api-key
-gr:
+imdb: imdb-api-key
+goodreads:
   key: goodreads-key
   secret: goodreads-secret

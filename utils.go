@@ -20,11 +20,11 @@ func parseYAML() (imdbKey, grKey, grSecret string, err error) {
 	if err != nil {
 		return
 	}
-	grKey, err = config.Get("gr.key")
+	grKey, err = config.Get("goodreads.key")
 	if err != nil {
 		return
 	}
-	grSecret, err = config.Get("gr.secret")
+	grSecret, err = config.Get("goodreads.secret")
 	if err != nil {
 		return
 	}
