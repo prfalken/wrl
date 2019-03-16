@@ -11,9 +11,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	omdb "github.com/kenshaw/imdb"
-	goodreads "github.com/prfalken/watchreadlisten/goodreads"
-	imdb "github.com/prfalken/watchreadlisten/imdb"
-	spotify "github.com/prfalken/watchreadlisten/spotify"
+	goodreads "github.com/prfalken/wrl/goodreads"
+	imdb "github.com/prfalken/wrl/imdb"
+	spotify "github.com/prfalken/wrl/spotify"
 )
 
 type Entry struct {
