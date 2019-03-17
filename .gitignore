@@ -25,6 +25,7 @@ _testmain.go
 
 config.yml
 imdb/config_test.yml
+spotify/config_test.yml
 entries.json
 watchreadlisten
 .vscode

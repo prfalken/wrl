@@ -3,9 +3,11 @@ package spotify
 // TODO: use https://github.com/zmb3/spotify
 
 import (
+	"context"
 	"net/http"
 
 	spotifyapp "github.com/zmb3/spotify"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 type Spotify struct {
@@ -14,39 +16,25 @@ type Spotify struct {
 	ClientSecret string
 }
 
-type Album struct {
-	Name         string
-	Released     string  `json:"released,omitempty"`
-	Length       float64 `json:"length,omitempty"`
-	Href         string
-	Availability struct {
-		Territories string
+func (s *Spotify) SearchAlbums(q string) (sr []spotifyapp.SimpleAlbum, err error) {
+
+	config := &clientcredentials.Config{
+		ClientID:     s.ClientID,
+		ClientSecret: s.ClientSecret,
+		TokenURL:     spotifyapp.TokenURL,
 	}
+	token, err := config.Token(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	client := spotifyapp.Authenticator{}.NewClient(token)
+	// search for playlists and albums containing "holiday"
+	results, err := client.Search(q, spotifyapp.SearchTypeAlbum)
+	if err != nil {
+		return nil, err
+	}
+
+	// handle album results
+	return results.Albums.Albums, nil
 }
-
-func (s *Spotify) SearchAlbums(q string) (sr spotifyapp.SearchResult, err error) {
-
-	// redirectURL := "https://wrl.falken.dev"
-	// auth := spotifyapp.NewAuthenticator(redirectURL, spotifyapp.ScopeUserReadPrivate)
-	// auth.SetAuthInfo(s.ClientID, s.ClientSecret)
-	// url := auth.AuthURL("xxx")
-
-	// result, err := spotifyapp.Search(query, spotifyapp.SearchTypeAlbum)
-	// if err != nil {
-	// 	return sr, err
-	// }
-	return
-}
-
-// func redirectHandler(w http.ResponseWriter, r *http.Request) {
-//       // use the same state string here that you used to generate the URL
-//       token, err := auth.Token(state, r)
-//       if err != nil {
-//             http.Error(w, "Couldn't get token", http.StatusNotFound)
-//             return
-//       }
-//       // create a client using the specified token
-//       client := auth.NewClient(token)
-
-//       // the client can now be used to make authenticated requests
-// }
