@@ -11,7 +11,7 @@ import (
 	"github.com/kylelemons/go-gypsy/yaml"
 )
 
-func parseYAML() (imdbKey, grKey, grSecret string, err error) {
+func parseYAML() (imdbKey, grKey, grSecret, spClientID, spClientSecret string, err error) {
 	config, err := yaml.ReadFile(*configFile)
 	if err != nil {
 		return
@@ -28,16 +28,16 @@ func parseYAML() (imdbKey, grKey, grSecret string, err error) {
 	if err != nil {
 		return
 	}
-	spKey, err = config.Get("spotify.key")
+	spClientID, err = config.Get("spotify.clientID")
 	if err != nil {
 		return
 	}
-	spSecret, err = config.Get("spotify.secret")
+	spClientSecret, err = config.Get("spotify.clientSecret")
 	if err != nil {
 		return
 	}
 
-	return imdbKey, grKey, grSecret, spKey, spSecret, nil
+	return imdbKey, grKey, grSecret, spClientID, spClientSecret, nil
 }
 
 func writeJSON(e []Entry, file string) error {

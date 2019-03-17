@@ -11,9 +11,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	omdb "github.com/kenshaw/imdb"
-	goodreads "github.com/prfalken/wrl/goodreads"
-	imdb "github.com/prfalken/wrl/imdb"
-	spotify "github.com/prfalken/wrl/spotify"
+	"github.com/prfalken/wrl/goodreads"
+	"github.com/prfalken/wrl/imdb"
+	"github.com/prfalken/wrl/spotify"
+	spotifyapp "github.com/zmb3/spotify"
 )
 
 type Entry struct {
@@ -25,7 +26,7 @@ type Entry struct {
 }
 
 // Search Imdb, Goodreads, and Spotify.
-func Search(q string, imdbClient imdb.Imdb, grClient goodreads.Goodreads, spClient spotify.Spotify) (i []*omdb.MovieResult, g goodreads.GoodreadsResponse, s spotify.SearchAlbumsResponse) {
+func Search(q string, imdbClient imdb.Imdb, grClient goodreads.Goodreads, spClient spotify.Spotify) (i []*omdb.MovieResult, g goodreads.GoodreadsResponse, s spotifyapp.SearchResult) {
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func(q string) {
@@ -56,10 +57,6 @@ func Search(q string, imdbClient imdb.Imdb, grClient goodreads.Goodreads, spClie
 		if err != nil {
 			log.Println("ERROR (sp SearchAlbums):", err.Error())
 		}
-		for i, a := range albums.Albums.Items {
-			a.Name = truncate(a.Name, "...", 60)
-			albums.Albums.Items[i] = a
-		}
 		s = albums
 	}(q)
 	wg.Wait()
@@ -81,7 +78,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
-	iKey, grKey, grSecret, err := parseYAML()
+	iKey, grKey, grSecret, spClientID, spClientSecret, err := parseYAML()
 	if err != nil {
 		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,7 +86,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	}
 	client := &http.Client{}
 	grClient := goodreads.Goodreads{Client: *client, Key: grKey, Secret: grSecret}
-	spClient := spotify.Spotify{Client: client}
+	spClient := spotify.Spotify{Client: client, ClientID: spClientID, ClientSecret: spClientSecret}
 	imdbClient := imdb.Imdb{Client: client, Key: iKey}
 	i, g, s := Search(query, imdbClient, grClient, spClient)
 	// Since spotify: URIs are not trusted, have to pass a
@@ -97,9 +94,6 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	funcMap := template.FuncMap{
 		"URL": func(q string) template.URL { return template.URL(query) },
 		"spotifyImage": func(album spotify.Album) string {
-			if len(album.Images) > 0 {
-				return album.Images[len(album.Images)-1].URL
-			}
 			return ""
 		},
 	}
