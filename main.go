@@ -26,5 +26,5 @@ func main() {
 	http.HandleFunc("/list", ListHandler)
 	http.HandleFunc("/remove", RemoveHandler)
 	log.Println("Running on localhost:" + *port)
-	log.Fatal(http.ListenAndServe("127.0.0.1:"+*port, nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+*port, nil))
 }

@@ -83,7 +83,7 @@
         {{range $album := .Albums}}
         <tr>
           <td>
-            <img src="{{(index $album.Images 2).URL}}" height="64" width="64"></img></td>
+            <img src="{{(index $album.Images 0).URL}}" height="64" width="64"></img></td>
           <td>
             <a href="{{$album.URI}}"></a>{{$album.Name}}</a></td>
           <td>
