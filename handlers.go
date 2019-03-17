@@ -26,7 +26,7 @@ type Entry struct {
 }
 
 // Search Imdb, Goodreads, and Spotify.
-func Search(q string, imdbClient imdb.Imdb, grClient goodreads.Goodreads, spClient spotify.Spotify) (i []*omdb.MovieResult, g goodreads.GoodreadsResponse, s spotifyapp.SearchResult) {
+func Search(q string, imdbClient imdb.Imdb, grClient goodreads.Goodreads, spClient spotify.Spotify) (i []*omdb.MovieResult, g goodreads.GoodreadsResponse, s []spotifyapp.SimpleAlbum) {
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func(q string) {
@@ -93,7 +93,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 	// URL function to the template to use in hrefs
 	funcMap := template.FuncMap{
 		"URL": func(q string) template.URL { return template.URL(query) },
-		"spotifyImage": func(album spotify.Album) string {
+		"spotifyImage": func(album spotifyapp.SimpleAlbum) string {
 			return ""
 		},
 	}
@@ -104,7 +104,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request, query string) {
 		return
 	}
 	// Render the template
-	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": i, "Books": g, "Albums": s.Albums})
+	err = t.ExecuteTemplate(w, "base", map[string]interface{}{"Movies": i, "Books": g, "Albums": s})
 	if err != nil {
 		log.Println("ERROR:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -16,7 +16,7 @@ type Spotify struct {
 	ClientSecret string
 }
 
-func (s *Spotify) SearchAlbums(q string) (sr []spotifyapp.SimpleAlbum, err error) {
+func (s *Spotify) SearchAlbums(q string) (albums []spotifyapp.SimpleAlbum, err error) {
 
 	config := &clientcredentials.Config{
 		ClientID:     s.ClientID,

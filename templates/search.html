@@ -80,19 +80,20 @@
         </tr>
       </thead>
       <tbody>
-        {{range $album := .Albums.Items}}
+        {{range $album := .Albums}}
         <tr>
-          <td><img src="{{spotifyImage $album}}" height="64" width="64"></img></td>
-          <td><a href="{{URL $album.Href}}">{{$album.Name}}</a></td>
+          <td>
+            <img src="{{(index $album.Images 2).URL}}" height="64" width="64"></img></td>
+          <td>
+            <a href="{{$album.URI}}"></a>{{$album.Name}}</a></td>
           <td>
             {{range $artist := $album.Artists}}
-            <a href="{{URL $artist.Href}}">{{$artist.Name}} </a>
+            <a href="{{$artist.URI}}">{{$artist.Name}}</a>
             {{end}}
           </td>
           <td>
             <form class="form-save" method="POST" action="/save" style="margin-bottom: 0">
               <input type="hidden" name="title" value="{{$album.Name}}"/>
-              <input type="hidden" name="link" value="{{$album.Href}}">
               <input type="hidden" name="media_type" value="album"/>
               <input type="submit" class="btn btn-primary btn-sm" value="Save" />
             </form>
